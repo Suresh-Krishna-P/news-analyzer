@@ -1,6 +1,4 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import { Progress } from "@radix-ui/react-progress";
 import { AlertCircle, CheckCircle, Flag, Info, Percent } from 'lucide-react';
 import AnalysisDetails from './AnalysisDetails';
 
@@ -50,18 +48,19 @@ const ResultCard = ({ result }: ResultCardProps) => {
   const status = getStatus();
 
   return (
-    <Card className="mt-6">
-      <CardHeader>
+    <div className="mt-6 bg-white dark:bg-slate-900 rounded-lg shadow-sm border">
+      <div className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {status.icon}
             <h2 className="text-lg font-semibold">{status.label}</h2>
           </div>
-          <Badge className={status.color}>{result.classification}</Badge>
+          <span className={`px-2 py-1 rounded text-sm font-medium ${status.color}`}>
+            {result.classification}
+          </span>
         </div>
-      </CardHeader>
-      <CardContent>
-        {/* Truth Assessment */}
+      </div>
+      <div className="p-6">
         <div className="mb-6 p-4 border rounded-lg bg-slate-50 dark:bg-slate-800">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -105,8 +104,8 @@ const ResultCard = ({ result }: ResultCardProps) => {
         </div>
 
         <AnalysisDetails result={result} />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
