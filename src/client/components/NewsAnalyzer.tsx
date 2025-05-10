@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { analyzeText } from '@/services/connectanalyzer';
-import ResultCard from '../ResultCard';
-import { toast } from 'sonner';
+import ResultCard from './ResultCard';
+import { toast } from "@/components/ui/sonner";
 
-const NewsAnalyzer: React.FC = () => {
-  const [title, setTitle] = useState<string>('');
-  const [text, setText] = useState<string>('');
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+const NewsAnalyzer = () => {
+  const [title, setTitle] = useState('');
+  const [text, setText] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
 
   const handleAnalyze = async () => {
@@ -42,12 +45,12 @@ const NewsAnalyzer: React.FC = () => {
           <label htmlFor="title" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             News Title
           </label>
-          <input 
+          <Input 
             id="title"
             placeholder="Enter the news title..." 
             value={title}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => setTitle(e.target.value)}
+            className="mb-4"
           />
         </div>
         
@@ -55,31 +58,28 @@ const NewsAnalyzer: React.FC = () => {
           <label htmlFor="content" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             News Content
           </label>
-          <textarea 
+          <Textarea 
             id="content"
             placeholder="Paste news article content to analyze..." 
-            className="w-full px-3 py-2 border rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600 min-h-[180px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="min-h-[180px]"
             value={text}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setText(e.target.value)}
+            onChange={(e) => setText(e.target.value)}
           />
         </div>
         
         <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-          <button 
+          <Button 
             onClick={handleAnalyze}
             disabled={isAnalyzing}
-            className={`px-4 py-2 rounded-md text-white font-medium ${
-              isAnalyzing ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-            }`}
           >
             {isAnalyzing ? 'Analyzing...' : 'Analyze'}
-          </button>
-          <button 
+          </Button>
+          <Button 
+            variant="outline"
             onClick={handleClear}
-            className="px-4 py-2 rounded-md text-blue-600 border border-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900"
           >
             Clear
-          </button>
+          </Button>
         </div>
       </div>
       {result && <ResultCard result={result} />}
