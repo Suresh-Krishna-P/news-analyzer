@@ -1,71 +1,70 @@
-import streamlit as st
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
+import streamlit as st
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+from sklearn.utils import resample
 
-# Load and train model function
+# Title
+st.title("📰 Fake News Detector")
+
+# Load dataset
+@st.cache_data
+def load_data():
+    df = pd.read_csv("fake_news_dataset_50k.csv")
+    return df
+
+df = load_data()
+
+# Combine title and text
+df["content"] = df["title"].astype(str) + " " + df["text"].astype(str)
+
+# Balance the dataset if needed
+df_majority = df[df.label == "real"]
+df_minority = df[df.label == "fake"]
+
+if len(df_majority) != len(df_minority):
+    df_majority_downsampled = resample(
+        df_majority,
+        replace=False,
+        n_samples=len(df_minority),
+        random_state=42
+    )
+    df_balanced = pd.concat([df_majority_downsampled, df_minority])
+else:
+    df_balanced = pd.concat([df_majority, df_minority])
+
+# Train-test split
+X = df_balanced["content"]
+y = df_balanced["label"]
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
+
+# Build model
 @st.cache_resource
-def load_and_train_model():
-    dataset_path = "fake_news_dataset_50k.csv"
-    
-    # Check if file exists
-    try:
-        df = pd.read_csv(dataset_path)
-    except FileNotFoundError:
-        st.error(f"Dataset not found at: {dataset_path}")
-        return None
-    
-    # Validate columns
-    required_cols = {"title", "text", "label"}
-    if not required_cols.issubset(df.columns):
-        st.error(f"Dataset must include the following columns: {required_cols}")
-        return None
-
-    # Combine title and text
-    df["content"] = df["title"].astype(str) + " " + df["text"].astype(str)
-    
-    # Train/test split
-    X_train, _, y_train, _ = train_test_split(
-        df["content"], df["label"], test_size=0.2, random_state=42)
-
-    # Build pipeline with CountVectorizer
+def train_model():
     model = Pipeline([
-        ('vectorizer', CountVectorizer(max_features=5000)),
-        ('classifier', LogisticRegression(max_iter=1000))
+        ("tfidf", TfidfVectorizer(max_features=5000, stop_words="english")),
+        ("clf", LogisticRegression(max_iter=1000))
     ])
-    
     model.fit(X_train, y_train)
     return model
 
-# App title
-st.title('📰 Fake News Detection App')
+st.info("⏳ Training model...")
+model = train_model()
+st.success("✅ Model is ready!")
 
-# Load and train the model
-st.info("⏳ Training or loading the model...")
-model = load_and_train_model()
+# Input fields
+title = st.text_input("Enter news title:")
+text = st.text_area("Enter news content:")
 
-# Check if model is loaded
-if model:
-    st.success("✅ Model is ready.")
-else:
-    st.stop()
-
-st.write("Enter the title and text of the news article to check if it's real or fake.")
-
-# User inputs
-title = st.text_input('📝 Title')
-text = st.text_area('📰 Text')
-
-# Submit button
-if st.button('🚀 Submit'):
+if st.button("🚀 Predict"):
     if title and text:
         content = f"{title} {text}"
-        try:
-            prediction = model.predict([content])[0]
-            st.success(f"🧠 Prediction: **{'Fake' if prediction == 1 else 'Real'}**")
-        except Exception as e:
-            st.error(f"Prediction failed: {e}")
+        prediction = model.predict([content])[0]
+        st.write(f"### 🧠 Prediction: **{prediction.upper()}**")
     else:
-        st.warning('⚠️ Please fill in both the title and text fields.')
+        st.warning("⚠️ Please enter both title and content.")
